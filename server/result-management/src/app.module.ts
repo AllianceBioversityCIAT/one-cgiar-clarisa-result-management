@@ -2,11 +2,17 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, RouterModule } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { GlobalUtilsModule } from './shared/utils/global-utils.module';
+import { ClarisaResultModule } from './entity/clarisa-result.module';
+import { mainRoutes } from './entity/main.routes';
 
 @Module({
   imports: [
+    GlobalUtilsModule,
+    ClarisaResultModule,
+    RouterModule.register(mainRoutes),
     ThrottlerModule.forRoot([
       {
         ttl: 60 * 1000,

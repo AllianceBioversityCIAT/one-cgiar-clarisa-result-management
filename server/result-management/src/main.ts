@@ -1,12 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CGIARLogger } from './shared/utils/logger.util';
+import { urlencoded } from 'express';
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
+  const logger = new CGIARLogger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   app.use(
@@ -25,7 +27,7 @@ async function bootstrap() {
       referrerPolicy: false,
     }),
   );
-
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
