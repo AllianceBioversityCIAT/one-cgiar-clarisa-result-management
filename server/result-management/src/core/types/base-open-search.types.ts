@@ -43,3 +43,22 @@ export type TransformToPropertyDescriptors<T> = {
     ? TransformToPropertyDescriptors<T[K]>
     : PropertyDescriptor;
 };
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    currentPage: number;
+    pageSize: number;
+    totalResults: number;
+    hasMore: boolean;
+    searchAfter?: any[];
+  };
+}
+
+export interface PaginationOptions {
+  pageSize?: number;
+  searchAfter?: any[];
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+  lastModifiedDate?: string; // Format: "2025-09-10T22:21:52.704832673Z"
+}

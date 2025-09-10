@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsNumber,
+  IsOptional,
   IsString,
   IsUrl,
   Matches,
@@ -123,4 +124,10 @@ export class ClarisaResultDto {
     type: 'text',
   })
   reporting_link: string;
+
+  @IsOptional()
+  @OpenSearchProperty({
+    type: 'date',
+  })
+  '@last_modified'?: string;
 }

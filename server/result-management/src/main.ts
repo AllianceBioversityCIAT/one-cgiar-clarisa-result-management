@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { CGIARLogger } from './shared/utils/logger.util';
-import { urlencoded } from 'express';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const logger = new CGIARLogger('Bootstrap');
@@ -28,6 +28,7 @@ async function bootstrap() {
     }),
   );
   app.use(urlencoded({ extended: true, limit: '50mb' }));
+  app.use(json({ limit: '50mb' }));
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({

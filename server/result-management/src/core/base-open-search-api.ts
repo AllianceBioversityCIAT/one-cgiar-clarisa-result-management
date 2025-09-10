@@ -16,6 +16,8 @@ import {
 } from './dto/elastic-operation.dto';
 import { SchemaOpenSearch } from './dto/opensearch-schema';
 import {
+  PaginatedResponse,
+  PaginationOptions,
   PropertyDescriptor,
   SearchFields,
 } from './types/base-open-search.types';
@@ -308,6 +310,95 @@ export abstract class BaseOpenSearchApi<
       }
     }
     return schema;
+  }
+
+  async getAllDataPaginated(
+    options: PaginationOptions = {},
+  ): Promise<PaginatedResponse<OpenSearchEntity>> {
+    const {
+      pageSize = 10000,
+      searchAfter,
+      sortField = this._primaryKey as string,
+      sortOrder = 'asc',
+      lastModifiedDate,
+    } = options;
+
+    // Build the query based on whether we have a date filter
+    let queryClause: any;
+
+    if (lastModifiedDate) {
+      // If date is provided, filter for documents with @last_modified >= lastModifiedDate
+      queryClause = {
+        range: {
+          '@last_modified': {
+            gte: lastModifiedDate,
+          },
+        },
+      };
+    } else {
+      // If no date, get all documents
+      queryClause = {
+        match_all: {},
+      };
+    }
+
+    const query: any = {
+      size: pageSize,
+      query: queryClause,
+      sort: [
+        {
+          [sortField]: {
+            order: sortOrder,
+          },
+        },
+      ],
+    };
+
+    // Add search_after for pagination if provided
+    if (searchAfter && searchAfter.length > 0) {
+      query.search_after = searchAfter;
+    }
+
+    try {
+      const response = await lastValueFrom(
+        this.postRequest<any, ElasticResponse<OpenSearchEntity>>(
+          `${this._index}/_search`,
+          query,
+          this._config,
+        ),
+      );
+
+      if (!response?.data) {
+        throw new Error('No response data received from OpenSearch');
+      }
+
+      const hits = response.data.hits.hits;
+      const data = hits.map((hit) => hit._source);
+      const totalResults = response.data.hits.total.value;
+
+      // Get the sort values from the last document for next page
+      const lastHit = hits[hits.length - 1];
+      const nextSearchAfter = lastHit?.sort;
+
+      return {
+        data,
+        pagination: {
+          currentPage: searchAfter
+            ? Math.floor(searchAfter[0] / pageSize) + 1
+            : 1,
+          pageSize,
+          totalResults,
+          hasMore: data.length === pageSize && data.length > 0,
+          searchAfter: nextSearchAfter,
+        },
+      };
+    } catch (error) {
+      const errorData = isAxiosError(error)
+        ? error.response?.data
+        : error.message;
+      this.logger.error('Error in getAllDataPaginated:', errorData);
+      throw new Error(`Failed to fetch paginated data: ${errorData}`);
+    }
   }
 
   async search(
