@@ -5,8 +5,8 @@ on:
     branches:
       - staging
       - dev
-      - main # This will trigger the workflow on any branch that receives a push
-  workflow_dispatch: # This allows the workflow to be manually triggered if needed
+      - main
+  workflow_dispatch:
 
 jobs:
   trigger-job:
