@@ -15,11 +15,7 @@ export async function createApp() {
   app.use(
     helmet({
       contentSecurityPolicy: false,
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true,
-      },
+      hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
       noSniff: true,
       xssFilter: true,
       frameguard: { action: 'deny' },
@@ -39,26 +35,29 @@ export async function createApp() {
     }),
   );
 
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // Make Swagger "Try it out" include the API Gateway stage (e.g. /prod)
+  const stage = process.env.APIGW_STAGE || process.env.STAGE || 'prod';
+
   const config = new DocumentBuilder()
     .setTitle('CLARISA Result Management API')
     .setDescription('API for managing CLARISA results')
     .setVersion('1.0')
     .addTag('results')
     .addBearerAuth()
+    .addServer(`/${stage}`)
     .build();
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
+    swaggerOptions: { persistAuthorization: true },
   });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('CL_PORT');
-  if (!port) {
+  if (!port)
     logger.warn('CL_PORT is not defined; continuing without HTTP listener');
-  }
 
   await app.init();
   logger.debug('Nest application initialised for Lambda');
