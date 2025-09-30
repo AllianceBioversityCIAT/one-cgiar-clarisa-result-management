@@ -39,6 +39,6 @@ CMD ["node", "dist/main.js"]
 
 ## --- Final image selection ---
 # To build for Lambda:
-# docker build -f Dockerfile --target=lambda -t clarisa-result-lambda .
+# docker build -f Dockerfile-lambda --target=lambda -t clarisa-result-lambda .
 # To build for EC2:
-# docker build -f Dockerfile --target=ec2 -t clarisa-result-ec2 .
+# docker build -f Dockerfile-lambda --target=ec2 -t clarisa-result-ec2 .
