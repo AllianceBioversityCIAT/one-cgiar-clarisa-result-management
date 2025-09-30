@@ -17,7 +17,7 @@ jobs:
       - name: Get branch name and build Jenkins URL
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}  # Remove 'refs/heads/' from GITHUB_REF
-          JENKINS_URL="https://automation.prms.cgiar.org/job/clarisa-result-management-${BRANCH_NAME}/build"
+          JENKINS_URL="https://automation.prms.cgiar.org/job/search-clarisa-result-management-${BRANCH_NAME}/build"
           echo "Jenkins job URL for the branch $BRANCH_NAME is: $JENKINS_URL"
           echo "JENKINS_URL=${JENKINS_URL}" >> $GITHUB_ENV
 

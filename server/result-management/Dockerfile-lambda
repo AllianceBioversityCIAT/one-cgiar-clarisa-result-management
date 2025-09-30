@@ -1,0 +1,44 @@
+# Dockerfile for NestJS backend supporting both EC2 and AWS Lambda
+# Multi-stage build for smaller image size
+
+
+## Stage 1: Install only production dependencies
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+## Stage 2: Install dev dependencies and build app
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+
+## --- Lambda Runtime Interface Emulator (for Lambda) ---
+FROM public.ecr.aws/lambda/nodejs:20 AS lambda
+WORKDIR /var/task
+COPY --from=builder /app/dist ./dist
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/main-lambda.js ./main-lambda.js
+## Lambda entrypoint
+CMD ["main-lambda.handler"]
+
+
+## --- EC2/Standard Node.js container ---
+FROM node:20-alpine AS ec2
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+
+## --- Final image selection ---
+# To build for Lambda:
+# docker build -f Dockerfile-lambda --target=lambda -t clarisa-result-lambda .
+# To build for EC2:
+# docker build -f Dockerfile-lambda --target=ec2 -t clarisa-result-ec2 .
