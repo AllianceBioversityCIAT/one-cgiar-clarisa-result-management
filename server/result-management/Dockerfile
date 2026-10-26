@@ -1,5 +1,5 @@
 #################### BASE STAGE ####################
-FROM node:20.13.1-alpine AS base
+FROM node:22.23.4-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -33,7 +33,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 #################### PRODUCTION STAGE ####################
-FROM node:20.13.1-alpine AS production
+FROM node:22.23.4-alpine AS production
 WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
